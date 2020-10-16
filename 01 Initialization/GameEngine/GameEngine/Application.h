@@ -1,10 +1,7 @@
 #pragma once
 
-#include <string>
 #include <memory>
 #include <Windows.h>
-
-using WindowProcedure = LRESULT (*) (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 class Application
 {
@@ -23,4 +20,5 @@ private:
 	std::unique_ptr<TCHAR[]> m_className;
 };
 
+using WindowProcedure = LRESULT (*) (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

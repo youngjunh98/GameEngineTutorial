@@ -1,5 +1,6 @@
 #pragma once
 
+// D3D11 라이브러리 링크
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
 #pragma comment (lib, "dxguid.lib")
@@ -15,10 +16,11 @@ public:
 	D3D11 ();
 	virtual ~D3D11 ();
 
-	bool Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen, bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount);
+	bool Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen,
+					 bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount);
 	void Shutdown ();
 
-	void ClearSwapChain (float red, float green, float blue, float alpha);
+	void ClearRenderTarget (float red, float green, float blue, float alpha);
 	void PresentSwapChain (bool isVSync);
 
 private:

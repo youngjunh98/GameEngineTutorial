@@ -141,7 +141,7 @@ void Application::Update ()
 		}
 
 		// 게임 루프
-		g_d3d11.ClearSwapChain (0.0f, 0.0f, 0.0f, 1.0f);
+		g_d3d11.ClearRenderTarget (0.0f, 0.0f, 0.0f, 1.0f);
 		g_d3d11.PresentSwapChain (true);
 	}
 }

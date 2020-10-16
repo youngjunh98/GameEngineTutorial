@@ -154,7 +154,7 @@ void D3D11::Shutdown ()
 	m_device.Reset ();
 }
 
-void D3D11::ClearSwapChain (float red, float green, float blue, float alpha)
+void D3D11::ClearRenderTarget (float red, float green, float blue, float alpha)
 {
 	// Render Target을 지정한 색으로 덮어쓴다.
 	FLOAT color[4] = { red, green, blue, alpha };
