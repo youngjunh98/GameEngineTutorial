@@ -25,12 +25,16 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 
 	// 윈도우 클래스를 설정한다.
 	WNDCLASS wc = { };
-	wc.hInstance = m_hInstance;
+	wc.style = CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = WndProc;
-	wc.lpszClassName = m_className.get ();
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wc.hCursor = LoadCursor (nullptr, IDC_ARROW);
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = m_hInstance;
 	wc.hIcon = LoadIcon (nullptr, IDI_WINLOGO);
+	wc.hCursor = LoadCursor (nullptr, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+	wc.lpszMenuName = nullptr;
+	wc.lpszClassName = m_className.get ();
 
 	// 윈도우 클래스를 등록한다.
 	if (RegisterClass (&wc) == false)
@@ -110,8 +114,7 @@ void Application::Shutdown ()
 	// D3D11을 종료한다.
 	g_d3d11.Shutdown ();
 
-	// 생성한 윈도우를 파괴한다.
-	DestroyWindow (m_hWnd);
+	// 윈도우를 nullptr로 설정한다.
 	m_hWnd = nullptr;
 
 	// 등록한 윈도우 클래스를 해제한다.
@@ -137,6 +140,7 @@ void Application::Update ()
 			DispatchMessage (&message);
 		}
 
+		// 게임 루프
 		g_d3d11.ClearSwapChain (0.0f, 0.0f, 0.0f, 1.0f);
 		g_d3d11.PresentSwapChain (true);
 	}
@@ -147,8 +151,15 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 		case WM_CLOSE:
+		{
+			// 생성한 윈도우를 파괴한다.
+			DestroyWindow (hWnd);
+			return 0;
+		}
+
 		case WM_DESTROY:
 		{
+			// 종료 메시지를 전달한다.
 			PostQuitMessage (0);
 			return 0;
 		}

@@ -62,6 +62,12 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+	if (isMsaa)
+	{
+		swapChainDesc.SampleDesc.Count = msaaSampleCount;
+		swapChainDesc.SampleDesc.Quality = msaaQuality - 1;
+	}
+
 	// Swap chain 생성한다.
 	if (FAILED (dxgiFactory->CreateSwapChain (m_device.Get (), &swapChainDesc, m_swapChain.ReleaseAndGetAddressOf ())))
 	{
@@ -89,22 +95,18 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 	depthStencilDescription.MipLevels = 1;
 	depthStencilDescription.ArraySize = 1;
 	depthStencilDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDescription.SampleDesc.Count = 1;
+	depthStencilDescription.SampleDesc.Quality = 0;
+	depthStencilDescription.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDescription.CPUAccessFlags = 0;
+	depthStencilDescription.MiscFlags = 0;
 
 	if (isMsaa)
 	{
 		depthStencilDescription.SampleDesc.Count = msaaSampleCount;
 		depthStencilDescription.SampleDesc.Quality = msaaQuality - 1;
 	}
-	else
-	{
-		depthStencilDescription.SampleDesc.Count = 1;
-		depthStencilDescription.SampleDesc.Quality = 0;
-	}
-
-	depthStencilDescription.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDescription.CPUAccessFlags = 0;
-	depthStencilDescription.MiscFlags = 0;
 
 	// Depth stencil buffer 만든다.
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
