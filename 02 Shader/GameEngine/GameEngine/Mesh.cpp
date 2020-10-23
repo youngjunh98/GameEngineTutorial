@@ -3,7 +3,7 @@
 
 extern D3D11 g_d3d11;
 
-Mesh::Mesh ()
+Mesh::Mesh () : m_vertexCount (0), m_indexCount (0)
 {
 }
 

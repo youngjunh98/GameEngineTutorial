@@ -1,7 +1,7 @@
 #include "D3D11.h"
 #include "ShaderProgram.h"
 
-D3D11::D3D11 ()
+D3D11::D3D11 () : m_featureLevel()
 {
 }
 
@@ -191,7 +191,9 @@ bool D3D11::CreateInputLayout (Microsoft::WRL::ComPtr<ID3D11InputLayout>& inputL
 	};
 
 	// Input Layout을 생성한다.
-	if (FAILED (m_device->CreateInputLayout (inputElementDescs, 1, compiledVertexShaderCode->GetBufferPointer (), compiledVertexShaderCode->GetBufferSize (), inputLayout.ReleaseAndGetAddressOf ())))
+	if (FAILED (m_device->CreateInputLayout (inputElementDescs, 1,
+		compiledVertexShaderCode->GetBufferPointer (), compiledVertexShaderCode->GetBufferSize (),
+		inputLayout.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
@@ -244,8 +246,11 @@ bool D3D11::CreateVertexShader (Microsoft::WRL::ComPtr<ID3D11VertexShader>& vert
 		return false;
 	}
 
+	LPVOID code = compiledCode->GetBufferPointer ();
+	SIZE_T codeSize = compiledCode->GetBufferSize ();
+
 	// Vertex Shader를 생성한다.
-	if (FAILED (m_device->CreateVertexShader (compiledCode->GetBufferPointer (), compiledCode->GetBufferSize (), nullptr, vertexShader.ReleaseAndGetAddressOf ())))
+	if (FAILED (m_device->CreateVertexShader (code, codeSize, nullptr, vertexShader.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
@@ -273,8 +278,11 @@ bool D3D11::CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelS
 		return false;
 	}
 
+	LPVOID code = compiledCode->GetBufferPointer ();
+	SIZE_T codeSize = compiledCode->GetBufferSize ();
+
 	// Pixel Shader를 생성한다.
-	if (FAILED (m_device->CreatePixelShader (compiledCode->GetBufferPointer (), compiledCode->GetBufferSize (), nullptr, pixelShader.ReleaseAndGetAddressOf ())))
+	if (FAILED (m_device->CreatePixelShader (code, codeSize, nullptr, pixelShader.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
