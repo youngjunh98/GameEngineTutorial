@@ -7,6 +7,7 @@
 #include "ShaderProgram.h"
 #include "Mesh.h"
 #include "OBJImporter.h"
+#include "FBXImporter.h"
 
 D3D11 g_d3d11;
 ShaderProgram g_colorShader;
@@ -121,7 +122,8 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 
 	// Mesh를 초기화한다.
 	std::unique_ptr<char[]> buffer;
-	std::ifstream file ("Assets/monkey.obj", std::ifstream::binary);
+	//std::ifstream file ("Assets/monkey.obj", std::ifstream::binary);
+	std::ifstream file ("Assets/Container40F.fbx", std::ifstream::binary);
 	size_t fileSize;
 
 	if (file)
@@ -138,10 +140,22 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 		return false;
 	}
 
-	if (OBJImporter::Import (g_mesh, buffer.get (), fileSize) == false)
+	//if (OBJImporter::Import (g_mesh, buffer.get (), fileSize) == false)
+	//{
+	//	return false;
+	//}
+
+	if (FBXImporter::Start () == false)
 	{
 		return false;
 	}
+
+	if (FBXImporter::Import (g_mesh, buffer.get (), fileSize) == false)
+	{
+		return false;
+	}
+
+	FBXImporter::Shutdown ();
 
 	return true;
 }

@@ -1,3 +1,8 @@
+// D3D11 라이브러리 링크
+#pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "d3dcompiler.lib")
+#pragma comment (lib, "dxguid.lib")
+
 #include "D3D11.h"
 #include "ShaderProgram.h"
 
