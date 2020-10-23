@@ -1,6 +1,6 @@
 #pragma once
 
-// D3D11 ¶óÀÌºê·¯¸® ¸µÅ©
+// D3D11 ë¼ì´ë¸ŒëŸ¬ë¦¬ ë§í¬
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
 #pragma comment (lib, "dxguid.lib")

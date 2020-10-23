@@ -19,15 +19,15 @@ Application::~Application ()
 
 bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int height, bool isFullScreen)
 {
-	// À©µµ¿ì Å¬·¡½º ÀÌ¸§ º¹»çÇÑ´Ù.
+	// ìœˆë„ìš° í´ë˜ìŠ¤ ì´ë¦„ ë³µì‚¬í•œë‹¤.
 	size_t classNameLength = _tcslen (name);
 	m_className = std::make_unique<TCHAR[]> (classNameLength + 1);
 	_tcsnccpy_s (m_className.get (), classNameLength + 1, name, classNameLength);
 
-	// exe ÆÄÀÏ ÇÚµéÀ» °¡Á®¿Â´Ù.
+	// exe íŒŒì¼ í•¸ë“¤ì„ ê°€ì ¸ì˜¨ë‹¤.
 	m_hInstance = GetModuleHandle (nullptr);
 
-	// À©µµ¿ì Å¬·¡½º¸¦ ¼³Á¤ÇÑ´Ù.
+	// ìœˆë„ìš° í´ë˜ìŠ¤ë¥¼ ì„¤ì •í•œë‹¤.
 	WNDCLASS wc = { };
 	wc.style = CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = WndProc;
@@ -40,13 +40,13 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = m_className.get ();
 
-	// À©µµ¿ì Å¬·¡½º¸¦ µî·ÏÇÑ´Ù.
+	// ìœˆë„ìš° í´ë˜ìŠ¤ë¥¼ ë“±ë¡í•œë‹¤.
 	if (RegisterClass (&wc) == false)
 	{
 		return false;
 	}
 
-	// ÀüÃ¼È­¸éÀÎÁö ¾Æ´ÑÁö¿¡ µû¶ó¼­ ½ºÅ¸ÀÏÀ» ÁöÁ¤ÇÑ´Ù.
+	// ì „ì²´í™”ë©´ì¸ì§€ ì•„ë‹Œì§€ì— ë”°ë¼ì„œ ìŠ¤íƒ€ì¼ì„ ì§€ì •í•œë‹¤.
 	DWORD style = 0;
 
 	if (isFullScreen)
@@ -60,20 +60,20 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 		style |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 	}
 
-	// È­¸é Å©±â¸¦ °¡Á®¿Â´Ù.
+	// í™”ë©´ í¬ê¸°ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	UINT screenWidth = GetSystemMetrics (SM_CXSCREEN);
 	UINT screenHeight = GetSystemMetrics (SM_CYSCREEN);
 
-	// È­¸é Å©±â¿Í À©µµ¿ì Å©±â¸¦ ¹ÙÅÁÀ¸·Î
-	// À©µµ¿ì¸¦ È­¸é Áß¾Ó¿¡ ¸ÂÃß´Â Rect¸¦ °è»êÇÑ´Ù.
+	// í™”ë©´ í¬ê¸°ì™€ ìœˆë„ìš° í¬ê¸°ë¥¼ ë°”íƒ•ìœ¼ë¡œ
+	// ìœˆë„ìš°ë¥¼ í™”ë©´ ì¤‘ì•™ì— ë§ì¶”ëŠ” Rectë¥¼ ê³„ì‚°í•œë‹¤.
 	RECT windowRect = { };
 	windowRect.left = (screenWidth / 2) - (width / 2);
 	windowRect.top = (screenHeight / 2) - (height / 2);
 	windowRect.right = (screenWidth / 2) + (width / 2);
 	windowRect.bottom = (screenHeight / 2) + (height / 2);
 
-	// °è»êÇÑ »ç°¢ÇüÀÌ Client AreaÀÏ ¶§
-	// ÁöÁ¤ÇÏ ½ºÅ¸ÀÏ¿¡ ¸Â´Â À©µµ¿ì Rect¸¦ °è»êÇÑ´Ù.
+	// ê³„ì‚°í•œ ì‚¬ê°í˜•ì´ Client Areaì¼ ë•Œ
+	// ì§€ì •í•˜ ìŠ¤íƒ€ì¼ì— ë§ëŠ” ìœˆë„ìš° Rectë¥¼ ê³„ì‚°í•œë‹¤.
 	AdjustWindowRect (&windowRect, style, false);
 
 	UINT windowX = windowRect.left;
@@ -81,7 +81,7 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	UINT windowWidth = windowRect.right - windowRect.left;
 	UINT windowHeight = windowRect.bottom - windowRect.top;
 
-	// À©µµ¿ì¸¦ »ı¼ºÇÑ´Ù.
+	// ìœˆë„ìš°ë¥¼ ìƒì„±í•œë‹¤.
 	m_hWnd = CreateWindow (
 		m_className.get (),
 		m_className.get (),
@@ -101,22 +101,22 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 		return false;
 	}
 
-	// À©µµ¿ì¸¦ Ç¥½ÃÇÑ´Ù.
+	// ìœˆë„ìš°ë¥¼ í‘œì‹œí•œë‹¤.
 	ShowWindow (m_hWnd, SW_SHOW);
 
-	// D3D11À» ÃÊ±âÈ­ÇÑ´Ù.
+	// D3D11ì„ ì´ˆê¸°í™”í•œë‹¤.
 	if (g_d3d11.Initialize (m_hWnd, width, height, false, true, 60, true, 4) == false)
 	{
 		return false;
 	}
 
-	// Shader¸¦ ÃÊ±âÈ­ÇÑ´Ù.
+	// Shaderë¥¼ ì´ˆê¸°í™”í•œë‹¤.
 	if (g_colorShader.Initialize (L"ColorShader.hlsl") == false)
 	{
 		return false;
 	}
 
-	// Mesh¸¦ ÃÊ±âÈ­ÇÑ´Ù.
+	// Meshë¥¼ ì´ˆê¸°í™”í•œë‹¤.
 	if (g_mesh.Initialize ({
 			{-0.5f, -0.5f, 0.0f},
 			{0.0f, 0.5f, 0.0f},
@@ -134,13 +134,13 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 
 void Application::Shutdown ()
 {
-	// D3D11À» Á¾·áÇÑ´Ù.
+	// D3D11ì„ ì¢…ë£Œí•œë‹¤.
 	g_d3d11.Shutdown ();
 
-	// À©µµ¿ì¸¦ nullptr·Î ¼³Á¤ÇÑ´Ù.
+	// ìœˆë„ìš°ë¥¼ nullptrë¡œ ì„¤ì •í•œë‹¤.
 	m_hWnd = nullptr;
 
-	// µî·ÏÇÑ À©µµ¿ì Å¬·¡½º¸¦ ÇØÁ¦ÇÑ´Ù.
+	// ë“±ë¡í•œ ìœˆë„ìš° í´ë˜ìŠ¤ë¥¼ í•´ì œí•œë‹¤.
 	UnregisterClass (m_className.get (), m_hInstance);
 	m_hInstance = nullptr;
 }
@@ -151,7 +151,7 @@ void Application::Update ()
 
 	while (true)
 	{
-		// ¸Ş½ÃÁö°¡ ÀÖÀ¸¸é Ã³¸®ÇÑ´Ù.
+		// ë©”ì‹œì§€ê°€ ìˆìœ¼ë©´ ì²˜ë¦¬í•œë‹¤.
 		while (PeekMessage (&message, nullptr, 0, 0, PM_REMOVE))
 		{
 			if (message.message == WM_QUIT)
@@ -163,7 +163,7 @@ void Application::Update ()
 			DispatchMessage (&message);
 		}
 
-		// °ÔÀÓ ·çÇÁ
+		// ê²Œì„ ë£¨í”„
 		g_d3d11.ClearRenderTarget (0.0f, 0.0f, 0.0f, 1.0f);
 		g_d3d11.ClearDpethStencil (1.0f, 0);
 		g_d3d11.DrawIndexed (g_mesh.GetVertexBuffer (), sizeof (Vertex), g_mesh.GetIndexBuffer (), g_mesh.GetIndexCount ());
@@ -177,14 +177,14 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CLOSE:
 		{
-			// »ı¼ºÇÑ À©µµ¿ì¸¦ ÆÄ±«ÇÑ´Ù.
+			// ìƒì„±í•œ ìœˆë„ìš°ë¥¼ íŒŒê´´í•œë‹¤.
 			DestroyWindow (hWnd);
 			return 0;
 		}
 
 		case WM_DESTROY:
 		{
-			// Á¾·á ¸Ş½ÃÁö¸¦ Àü´ŞÇÑ´Ù.
+			// ì¢…ë£Œ ë©”ì‹œì§€ë¥¼ ì „ë‹¬í•œë‹¤.
 			PostQuitMessage (0);
 			return 0;
 		}

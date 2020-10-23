@@ -11,41 +11,41 @@ D3D11::~D3D11 ()
 
 bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen, bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount)
 {
-	// »ç¿ëÇÒ DirectX 11 ¹öÀü
+	// ì‚¬ìš©í•  DirectX 11 ë²„ì „
 	const D3D_FEATURE_LEVEL targetFeatureLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 	const UINT targetFeatureLevelsCount = 2;
 
-	// D3D11 Device ¼³Á¤
+	// D3D11 Device ì„¤ì •
 	UINT deviceFlags = 0;
 
 #if _DEBUG
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	// D3D11 Device¸¦ »ı¼ºÇÑ´Ù.
+	// D3D11 Deviceë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (D3D11CreateDevice (nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, deviceFlags, targetFeatureLevels, targetFeatureLevelsCount,
 		D3D11_SDK_VERSION, m_device.ReleaseAndGetAddressOf (), &m_featureLevel, m_immediateContext.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Áö¿øÇÏ´Â MSAA Ç°ÁúÀ» °¡Á®¿Â´Ù.
+	// ì§€ì›í•˜ëŠ” MSAA í’ˆì§ˆì„ ê°€ì ¸ì˜¨ë‹¤.
 	UINT msaaQuality;
 	m_device->CheckMultisampleQualityLevels (DXGI_FORMAT_R8G8B8A8_UNORM, msaaSampleCount, &msaaQuality);
 
-	// DXGI µğ¹ÙÀÌ½º¸¦ °¡Á®¿Â´Ù.
+	// DXGI ë””ë°”ì´ìŠ¤ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
 	m_device.As (&dxgiDevice);
 
-	// DXGI ¾î´ğÅÍ¸¦ °¡Á®¿Â´Ù.
+	// DXGI ì–´ëŒ‘í„°ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
 	dxgiDevice->GetAdapter (dxgiAdapter.ReleaseAndGetAddressOf ());
 
-	// DXGI Factory¸¦ °¡Á®¿Â´Ù.
+	// DXGI Factoryë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIFactory> dxgiFactory;
 	dxgiAdapter->GetParent (__uuidof (IDXGIFactory), &dxgiFactory);
 
-	// Swap chain ¼³Á¤
+	// Swap chain ì„¤ì •
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = { };
 	swapChainDesc.BufferDesc.Width = swapChainWidth;
 	swapChainDesc.BufferDesc.Height = swapChainHeight;
@@ -69,13 +69,13 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		swapChainDesc.SampleDesc.Quality = msaaQuality - 1;
 	}
 
-	// Swap chain »ı¼ºÇÑ´Ù.
+	// Swap chain ìƒì„±í•œë‹¤.
 	if (FAILED (dxgiFactory->CreateSwapChain (m_device.Get (), &swapChainDesc, m_swapChain.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Swap chainÀÇ Back buffer °¡Á®¿Â´Ù.
+	// Swap chainì˜ Back buffer ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 
 	if (FAILED (m_swapChain->GetBuffer (0, __uuidof (ID3D11Texture2D), (void**)backBuffer.ReleaseAndGetAddressOf ())))
@@ -83,13 +83,13 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		return false;
 	}
 
-	// Render target view ¸¸µç´Ù.
+	// Render target view ë§Œë“ ë‹¤.
 	if (FAILED (m_device->CreateRenderTargetView (backBuffer.Get (), nullptr, m_renderTargetView.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Depth stencil buffer ¼³Á¤
+	// Depth stencil buffer ì„¤ì •
 	D3D11_TEXTURE2D_DESC depthStencilDescription = { };
 	depthStencilDescription.Width = swapChainWidth;
 	depthStencilDescription.Height = swapChainHeight;
@@ -109,23 +109,23 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		depthStencilDescription.SampleDesc.Quality = msaaQuality - 1;
 	}
 
-	// Depth stencil buffer ¸¸µç´Ù.
+	// Depth stencil buffer ë§Œë“ ë‹¤.
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	if (FAILED (m_device->CreateTexture2D (&depthStencilDescription, nullptr, depthStencilBuffer.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Depth stencil view ¸¸µç´Ù.
+	// Depth stencil view ë§Œë“ ë‹¤.
 	if (FAILED (m_device->CreateDepthStencilView (depthStencilBuffer.Get (), nullptr, m_depthStencilView.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Output mergerÀÇ Render target ¼³Á¤ÇÑ´Ù.
+	// Output mergerì˜ Render target ì„¤ì •í•œë‹¤.
 	m_immediateContext->OMSetRenderTargets (1, m_renderTargetView.GetAddressOf (), m_depthStencilView.Get ());
 
-	// Viewport¸¦ ¼³Á¤ÇÑ´Ù.
+	// Viewportë¥¼ ì„¤ì •í•œë‹¤.
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast<FLOAT> (swapChainWidth);
 	viewport.Height = static_cast<FLOAT> (swapChainHeight);
@@ -141,12 +141,12 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 void D3D11::Shutdown ()
 {
-	// ·»´õ Å¸°Ù ¹ÙÀÎµù ÇØÁ¦ÇÑ´Ù.
+	// ë Œë” íƒ€ê²Ÿ ë°”ì¸ë”© í•´ì œí•œë‹¤.
 	ID3D11RenderTargetView* nullRenderTargetViews[] = { nullptr };
 	ID3D11DepthStencilView* nullDepthStencilView = nullptr;
 	m_immediateContext->OMSetRenderTargets (1, nullRenderTargetViews, nullDepthStencilView);
 
-	// »ı¼ºÇÑ ÀÚ¿ø ·¹ÆÛ·±½º ÇØÁ¦ÇÑ´Ù.
+	// ìƒì„±í•œ ìì› ë ˆí¼ëŸ°ìŠ¤ í•´ì œí•œë‹¤.
 	m_depthStencilView = nullptr;
 	m_renderTargetView = nullptr;
 	m_swapChain = nullptr;
@@ -157,20 +157,20 @@ void D3D11::Shutdown ()
 
 void D3D11::ClearRenderTarget (float red, float green, float blue, float alpha)
 {
-	// Render TargetÀ» ÁöÁ¤ÇÑ »öÀ¸·Î µ¤¾î¾´´Ù.
+	// Render Targetì„ ì§€ì •í•œ ìƒ‰ìœ¼ë¡œ ë®ì–´ì“´ë‹¤.
 	FLOAT color[4] = { red, green, blue, alpha };
 	m_immediateContext->ClearRenderTargetView (m_renderTargetView.Get (), color);
 }
 
 void D3D11::ClearDpethStencil (float depth, unsigned char stencil)
 {
-	// Depth¿Í StencilÀ» ÁöÁ¤ÇÑ °ªÀ¸·Î µ¤¾î¾´´Ù.
+	// Depthì™€ Stencilì„ ì§€ì •í•œ ê°’ìœ¼ë¡œ ë®ì–´ì“´ë‹¤.
 	m_immediateContext->ClearDepthStencilView (m_depthStencilView.Get (), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, stencil);
 }
 
 void D3D11::PresentSwapChain (bool isVSync)
 {
-	// Swap chainÀÇ Back buffer¿Í Front Buffer¸¦ ±³È¯ÇÑ´Ù.
+	// Swap chainì˜ Back bufferì™€ Front Bufferë¥¼ êµí™˜í•œë‹¤.
 	if (isVSync)
 	{
 		m_swapChain->Present (1, 0);
@@ -183,14 +183,14 @@ void D3D11::PresentSwapChain (bool isVSync)
 
 bool D3D11::CreateInputLayout (Microsoft::WRL::ComPtr<ID3D11InputLayout>& inputLayout, const Microsoft::WRL::ComPtr<ID3DBlob>& compiledVertexShaderCode)
 {
-	// Input LayoutÀ» ¼³Á¤ÇÑ´Ù.
+	// Input Layoutì„ ì„¤ì •í•œë‹¤.
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		//{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	// Input LayoutÀ» »ı¼ºÇÑ´Ù.
+	// Input Layoutì„ ìƒì„±í•œë‹¤.
 	if (FAILED (m_device->CreateInputLayout (inputElementDescs, 1, compiledVertexShaderCode->GetBufferPointer (), compiledVertexShaderCode->GetBufferSize (), inputLayout.ReleaseAndGetAddressOf ())))
 	{
 		return false;
@@ -201,7 +201,7 @@ bool D3D11::CreateInputLayout (Microsoft::WRL::ComPtr<ID3D11InputLayout>& inputL
 
 void D3D11::SetInputLayout (const Microsoft::WRL::ComPtr<ID3D11InputLayout>& inputLayout)
 {
-	// ÁöÁ¤ÇÑ Input LayoutÀ» »ç¿ëÇÑ´Ù.
+	// ì§€ì •í•œ Input Layoutì„ ì‚¬ìš©í•œë‹¤.
 	m_immediateContext->IASetInputLayout (inputLayout.Get ());
 }
 
@@ -209,7 +209,7 @@ bool D3D11::CompileShader (LPCTSTR sourcePath, LPCSTR profile, LPCSTR entryPoint
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> errorMessages;
 
-	// Shader ÄÄÆÄÀÏ ¿É¼ÇÀ» ¼³Á¤ÇÑ´Ù.
+	// Shader ì»´íŒŒì¼ ì˜µì…˜ì„ ì„¤ì •í•œë‹¤.
 	UINT shaderCompileOptions = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS;
 	UINT effectCompileOptions = 0;
 
@@ -217,11 +217,11 @@ bool D3D11::CompileShader (LPCTSTR sourcePath, LPCSTR profile, LPCSTR entryPoint
 	shaderCompileOptions |= D3DCOMPILE_DEBUG;
 #endif
 
-	// Shader¸¦ ÄÄÆÄÀÏÇÑ´Ù.
+	// Shaderë¥¼ ì»´íŒŒì¼í•œë‹¤.
 	if (FAILED (D3DCompileFromFile (sourcePath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint, profile,
 		shaderCompileOptions, effectCompileOptions, compiledCode.ReleaseAndGetAddressOf (), errorMessages.ReleaseAndGetAddressOf ())))
 	{
-		// ¿¡·¯ ¸Ş½ÃÁö¸¦ Ãâ·ÂÇÑ´Ù.
+		// ì—ëŸ¬ ë©”ì‹œì§€ë¥¼ ì¶œë ¥í•œë‹¤.
 		if (errorMessages)
 		{
 			OutputDebugStringA (static_cast<char*> (errorMessages->GetBufferPointer ()));
@@ -244,7 +244,7 @@ bool D3D11::CreateVertexShader (Microsoft::WRL::ComPtr<ID3D11VertexShader>& vert
 		return false;
 	}
 
-	// Vertex Shader¸¦ »ı¼ºÇÑ´Ù.
+	// Vertex Shaderë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (m_device->CreateVertexShader (compiledCode->GetBufferPointer (), compiledCode->GetBufferSize (), nullptr, vertexShader.ReleaseAndGetAddressOf ())))
 	{
 		return false;
@@ -255,7 +255,7 @@ bool D3D11::CreateVertexShader (Microsoft::WRL::ComPtr<ID3D11VertexShader>& vert
 
 void D3D11::SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader)
 {
-	// ÁöÁ¤ÇÑ Vertex Shader¸¦ »ç¿ëÇÑ´Ù.
+	// ì§€ì •í•œ Vertex Shaderë¥¼ ì‚¬ìš©í•œë‹¤.
 	if (vertexShader)
 	{
 		m_immediateContext->VSSetShader (vertexShader.Get (), nullptr, 0);
@@ -273,7 +273,7 @@ bool D3D11::CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelS
 		return false;
 	}
 
-	// Pixel Shader¸¦ »ı¼ºÇÑ´Ù.
+	// Pixel Shaderë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (m_device->CreatePixelShader (compiledCode->GetBufferPointer (), compiledCode->GetBufferSize (), nullptr, pixelShader.ReleaseAndGetAddressOf ())))
 	{
 		return false;
@@ -284,7 +284,7 @@ bool D3D11::CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelS
 
 void D3D11::SetPixelShader (const Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader)
 {
-	// ÁöÁ¤ÇÑ Pixel Shader¸¦ »ç¿ëÇÑ´Ù.
+	// ì§€ì •í•œ Pixel Shaderë¥¼ ì‚¬ìš©í•œë‹¤.
 	if (pixelShader)
 	{
 		m_immediateContext->PSSetShader (pixelShader.Get (), nullptr, 0);
@@ -297,7 +297,7 @@ void D3D11::SetPixelShader (const Microsoft::WRL::ComPtr<ID3D11PixelShader>& pix
 
 bool D3D11::CreateVertexBuffer (const void* buffer, unsigned int bufferByteSize, Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer)
 {
-	// Buffer¸¦ Vertex Buffer·Î ¼³Á¤ÇÑ´Ù.
+	// Bufferë¥¼ Vertex Bufferë¡œ ì„¤ì •í•œë‹¤.
 	D3D11_BUFFER_DESC vertexBufferDescription = { };
 	vertexBufferDescription.Usage = D3D11_USAGE_IMMUTABLE;
 	vertexBufferDescription.ByteWidth = bufferByteSize;
@@ -306,11 +306,11 @@ bool D3D11::CreateVertexBuffer (const void* buffer, unsigned int bufferByteSize,
 	vertexBufferDescription.MiscFlags = 0;
 	vertexBufferDescription.StructureByteStride = 0;
 
-	// Vertex BufferÀÇ ÃÊ±â°ªÀ» ÁöÁ¤ÇÑ´Ù.
+	// Vertex Bufferì˜ ì´ˆê¸°ê°’ì„ ì§€ì •í•œë‹¤.
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { };
 	vertexBufferData.pSysMem = buffer;
 
-	// Vertex Buffer¸¦ »ı¼ºÇÑ´Ù.
+	// Vertex Bufferë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (m_device->CreateBuffer (&vertexBufferDescription, &vertexBufferData, vertexBuffer.ReleaseAndGetAddressOf ())))
 	{
 		return false;
@@ -321,7 +321,7 @@ bool D3D11::CreateVertexBuffer (const void* buffer, unsigned int bufferByteSize,
 
 bool D3D11::CreateIndexBuffer (const void* buffer, unsigned int bufferByteSize, Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer)
 {
-	// Buffer¸¦ Index Buffer·Î ¼³Á¤ÇÑ´Ù.
+	// Bufferë¥¼ Index Bufferë¡œ ì„¤ì •í•œë‹¤.
 	D3D11_BUFFER_DESC indexBufferDescription = { };
 	indexBufferDescription.Usage = D3D11_USAGE_IMMUTABLE;
 	indexBufferDescription.ByteWidth = bufferByteSize;
@@ -330,11 +330,11 @@ bool D3D11::CreateIndexBuffer (const void* buffer, unsigned int bufferByteSize, 
 	indexBufferDescription.MiscFlags = 0;
 	indexBufferDescription.StructureByteStride = 0;
 
-	// Index BufferÀÇ ÃÊ±â°ªÀ» ÁöÁ¤ÇÑ´Ù.
+	// Index Bufferì˜ ì´ˆê¸°ê°’ì„ ì§€ì •í•œë‹¤.
 	D3D11_SUBRESOURCE_DATA indexBufferData = { };
 	indexBufferData.pSysMem = buffer;
 
-	// Index Buffer¸¦ »ı¼ºÇÑ´Ù.
+	// Index Bufferë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (m_device->CreateBuffer (&indexBufferDescription, &indexBufferData, indexBuffer.ReleaseAndGetAddressOf ())))
 	{
 		return false;
@@ -354,13 +354,13 @@ void D3D11::DrawIndexed (const Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffe
 	UINT stride = vertexSize;
 	UINT offset = 0;
 
-	// ¸Ş½ÃÀÇ Topology(ÀÏÁ¾ÀÇ Æ÷¸Ë)¸¦ Triangle List·Î ¼³Á¤ÇÑ´Ù.
+	// ë©”ì‹œì˜ Topology(ì¼ì¢…ì˜ í¬ë§·)ë¥¼ Triangle Listë¡œ ì„¤ì •í•œë‹¤.
 	m_immediateContext->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// ±×¸®´Âµ¥ »ç¿ëÇÒ Vertex Buffer¿Í Index Buffer¸¦ ÁöÁ¤ÇÑ´Ù.
+	// ê·¸ë¦¬ëŠ”ë° ì‚¬ìš©í•  Vertex Bufferì™€ Index Bufferë¥¼ ì§€ì •í•œë‹¤.
 	m_immediateContext->IASetVertexBuffers (0, 1, vertexBuffer.GetAddressOf (), &stride, &offset);
 	m_immediateContext->IASetIndexBuffer (indexBuffer.Get (), DXGI_FORMAT_R32_UINT, 0);
 
-	// Index¸¦ »ç¿ëÇØ ±×¸°´Ù.
+	// Indexë¥¼ ì‚¬ìš©í•´ ê·¸ë¦°ë‹¤.
 	m_immediateContext->DrawIndexed (indexCount, 0, 0);
 }

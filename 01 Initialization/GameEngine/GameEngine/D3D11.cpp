@@ -10,41 +10,41 @@ D3D11::~D3D11 ()
 
 bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen, bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount)
 {
-	// »ç¿ëÇÒ DirectX 11 ¹öÀü
+	// ì‚¬ìš©í•  DirectX 11 ë²„ì „
 	const D3D_FEATURE_LEVEL targetFeatureLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 	const UINT targetFeatureLevelsCount = 2;
 
-	// D3D11 Device ¼³Á¤
+	// D3D11 Device ì„¤ì •
 	UINT deviceFlags = 0;
 
 #if _DEBUG
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	// D3D11 Device¸¦ »ı¼ºÇÑ´Ù.
+	// D3D11 Deviceë¥¼ ìƒì„±í•œë‹¤.
 	if (FAILED (D3D11CreateDevice (nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, deviceFlags, targetFeatureLevels, targetFeatureLevelsCount,
 		D3D11_SDK_VERSION, m_device.ReleaseAndGetAddressOf (), &m_featureLevel, m_immediateContext.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Áö¿øÇÏ´Â MSAA Ç°ÁúÀ» °¡Á®¿Â´Ù.
+	// ì§€ì›í•˜ëŠ” MSAA í’ˆì§ˆì„ ê°€ì ¸ì˜¨ë‹¤.
 	UINT msaaQuality;
 	m_device->CheckMultisampleQualityLevels (DXGI_FORMAT_R8G8B8A8_UNORM, msaaSampleCount, &msaaQuality);
 
-	// DXGI µğ¹ÙÀÌ½º¸¦ °¡Á®¿Â´Ù.
+	// DXGI ë””ë°”ì´ìŠ¤ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
 	m_device.As (&dxgiDevice);
 
-	// DXGI ¾î´ğÅÍ¸¦ °¡Á®¿Â´Ù.
+	// DXGI ì–´ëŒ‘í„°ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
 	dxgiDevice->GetAdapter (dxgiAdapter.ReleaseAndGetAddressOf ());
 
-	// DXGI Factory¸¦ °¡Á®¿Â´Ù.
+	// DXGI Factoryë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<IDXGIFactory> dxgiFactory;
 	dxgiAdapter->GetParent (__uuidof (IDXGIFactory), &dxgiFactory);
 
-	// Swap chain ¼³Á¤
+	// Swap chain ì„¤ì •
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = { };
 	swapChainDesc.BufferDesc.Width = swapChainWidth;
 	swapChainDesc.BufferDesc.Height = swapChainHeight;
@@ -68,13 +68,13 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		swapChainDesc.SampleDesc.Quality = msaaQuality - 1;
 	}
 
-	// Swap chain »ı¼ºÇÑ´Ù.
+	// Swap chain ìƒì„±í•œë‹¤.
 	if (FAILED (dxgiFactory->CreateSwapChain (m_device.Get (), &swapChainDesc, m_swapChain.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Swap chainÀÇ Back buffer °¡Á®¿Â´Ù.
+	// Swap chainì˜ Back buffer ê°€ì ¸ì˜¨ë‹¤.
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 
 	if (FAILED (m_swapChain->GetBuffer (0, __uuidof (ID3D11Texture2D), (void**)backBuffer.ReleaseAndGetAddressOf ())))
@@ -82,13 +82,13 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		return false;
 	}
 
-	// Render target view ¸¸µç´Ù.
+	// Render target view ë§Œë“ ë‹¤.
 	if (FAILED (m_device->CreateRenderTargetView (backBuffer.Get (), nullptr, m_renderTargetView.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Depth stencil buffer ¼³Á¤
+	// Depth stencil buffer ì„¤ì •
 	D3D11_TEXTURE2D_DESC depthStencilDescription = { };
 	depthStencilDescription.Width = swapChainWidth;
 	depthStencilDescription.Height = swapChainHeight;
@@ -108,23 +108,23 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 		depthStencilDescription.SampleDesc.Quality = msaaQuality - 1;
 	}
 
-	// Depth stencil buffer ¸¸µç´Ù.
+	// Depth stencil buffer ë§Œë“ ë‹¤.
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
 	if (FAILED (m_device->CreateTexture2D (&depthStencilDescription, nullptr, depthStencilBuffer.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Depth stencil view ¸¸µç´Ù.
+	// Depth stencil view ë§Œë“ ë‹¤.
 	if (FAILED (m_device->CreateDepthStencilView (depthStencilBuffer.Get (), nullptr, m_depthStencilView.ReleaseAndGetAddressOf ())))
 	{
 		return false;
 	}
 
-	// Output mergerÀÇ Render target ¼³Á¤ÇÑ´Ù.
+	// Output mergerì˜ Render target ì„¤ì •í•œë‹¤.
 	m_immediateContext->OMSetRenderTargets (1, m_renderTargetView.GetAddressOf (), m_depthStencilView.Get ());
 
-	// Viewport¸¦ ¼³Á¤ÇÑ´Ù.
+	// Viewportë¥¼ ì„¤ì •í•œë‹¤.
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast<FLOAT> (swapChainWidth);
 	viewport.Height = static_cast<FLOAT> (swapChainHeight);
@@ -140,12 +140,12 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 void D3D11::Shutdown ()
 {
-	// ·»´õ Å¸°Ù ¹ÙÀÎµù ÇØÁ¦ÇÑ´Ù.
+	// ë Œë” íƒ€ê²Ÿ ë°”ì¸ë”© í•´ì œí•œë‹¤.
 	ID3D11RenderTargetView* nullRenderTargetViews[] = { nullptr };
 	ID3D11DepthStencilView* nullDepthStencilView = nullptr;
 	m_immediateContext->OMSetRenderTargets (1, nullRenderTargetViews, nullDepthStencilView);
 
-	// »ı¼ºÇÑ ÀÚ¿ø ·¹ÆÛ·±½º ÇØÁ¦ÇÑ´Ù.
+	// ìƒì„±í•œ ìì› ë ˆí¼ëŸ°ìŠ¤ í•´ì œí•œë‹¤.
 	m_depthStencilView = nullptr;
 	m_renderTargetView = nullptr;
 	m_swapChain = nullptr;
@@ -156,14 +156,14 @@ void D3D11::Shutdown ()
 
 void D3D11::ClearRenderTarget (float red, float green, float blue, float alpha)
 {
-	// Render TargetÀ» ÁöÁ¤ÇÑ »öÀ¸·Î µ¤¾î¾´´Ù.
+	// Render Targetì„ ì§€ì •í•œ ìƒ‰ìœ¼ë¡œ ë®ì–´ì“´ë‹¤.
 	FLOAT color[4] = { red, green, blue, alpha };
 	m_immediateContext->ClearRenderTargetView (m_renderTargetView.Get (), color);
 }
 
 void D3D11::PresentSwapChain (bool isVSync)
 {
-	// Swap chainÀÇ Back buffer¿Í Front Buffer¸¦ ±³È¯ÇÑ´Ù.
+	// Swap chainì˜ Back bufferì™€ Front Bufferë¥¼ êµí™˜í•œë‹¤.
 	if (isVSync)
 	{
 		m_swapChain->Present (1, 0);

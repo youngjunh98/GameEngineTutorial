@@ -16,13 +16,13 @@ bool Mesh::Initialize (const std::vector<Vertex>& vertices, const std::vector<un
 	m_vertexCount = vertices.size ();
 	m_indexCount = indices.size ();
 
-	// Vertex Buffer¸¦ ¸¸µç´Ù.
+	// Vertex Bufferë¥¼ ë§Œë“ ë‹¤.
 	if (g_d3d11.CreateVertexBuffer (vertices.data (), sizeof (Vertex) * m_vertexCount, m_vertexBuffer) == false)
 	{
 		return false;
 	}
 
-	// Index Buffer¸¦ ¸¸µç´Ù.
+	// Index Bufferë¥¼ ë§Œë“ ë‹¤.
 	if (g_d3d11.CreateIndexBuffer (indices.data (), sizeof (unsigned int) * m_indexCount, m_indexBuffer) == false)
 	{
 		return false;

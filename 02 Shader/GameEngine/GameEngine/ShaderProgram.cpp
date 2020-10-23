@@ -15,19 +15,19 @@ bool ShaderProgram::Initialize (LPCTSTR sourcePath)
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> compiledVertexShader;
 
-	// Vertex Shader ¼Ò½º¸¦ ÄÄÆÄÀÏÇÑ´Ù.
+	// Vertex Shader ì†ŒìŠ¤ë¥¼ ì»´íŒŒì¼í•œë‹¤.
 	if (g_d3d11.CompileShader (sourcePath, "vs_5_0", "VertexMain", compiledVertexShader) == false)
 	{
 		return false;
 	}
 
-	// ÄÄÆÄÀÏÇÑ ¼Ò½º·Î Vertex Shader¸¦ »ı¼ºÇÑ´Ù.
+	// ì»´íŒŒì¼í•œ ì†ŒìŠ¤ë¡œ Vertex Shaderë¥¼ ìƒì„±í•œë‹¤.
 	if (g_d3d11.CreateVertexShader (m_vertexShader, compiledVertexShader) == false)
 	{
 		return false;
 	}
 
-	// ÄÄÆÄÀÏÇÑ ¼Ò½º·Î Input LayoutÀ» »ı¼ºÇÑ´Ù.
+	// ì»´íŒŒì¼í•œ ì†ŒìŠ¤ë¡œ Input Layoutì„ ìƒì„±í•œë‹¤.
 	if (g_d3d11.CreateInputLayout (m_inputLayout, compiledVertexShader) == false)
 	{
 		return false;
@@ -35,19 +35,19 @@ bool ShaderProgram::Initialize (LPCTSTR sourcePath)
 
 	Microsoft::WRL::ComPtr<ID3DBlob> compiledPixelShader;
 
-	// Pixel Shader ¼Ò½º¸¦ ÄÄÆÄÀÏÇÑ´Ù.
+	// Pixel Shader ì†ŒìŠ¤ë¥¼ ì»´íŒŒì¼í•œë‹¤.
 	if (g_d3d11.CompileShader (sourcePath, "ps_5_0", "PixelMain", compiledPixelShader) == false)
 	{
 		return false;
 	}
 
-	// ÄÄÆÄÀÏÇÑ ¼Ò½º·Î Pixel Shader¸¦ »ı¼ºÇÑ´Ù.
+	// ì»´íŒŒì¼í•œ ì†ŒìŠ¤ë¡œ Pixel Shaderë¥¼ ìƒì„±í•œë‹¤.
 	if (g_d3d11.CreatePixelShader (m_pixelShader, compiledPixelShader) == false)
 	{
 		return false;
 	}
 
-	// »ı¼ºÇÑ Shader¿Í InputLayoutÀ» »ç¿ëÇÑ´Ù.
+	// ìƒì„±í•œ Shaderì™€ InputLayoutì„ ì‚¬ìš©í•œë‹¤.
 	g_d3d11.SetInputLayout (m_inputLayout);
 	g_d3d11.SetVertexShader (m_vertexShader);
 	g_d3d11.SetPixelShader (m_pixelShader);
