@@ -25,16 +25,28 @@ public:
 	bool CompileShader (LPCTSTR sourcePath, LPCSTR profile, LPCSTR entryPoint, Microsoft::WRL::ComPtr<ID3DBlob>& compiledCode);
 
 	bool CreateVertexShader (Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader, const Microsoft::WRL::ComPtr<ID3DBlob>& compiledCode);
-	void SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader);
-
 	bool CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader, const Microsoft::WRL::ComPtr<ID3DBlob>& compiledCode);
+
+	void SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader);
 	void SetPixelShader (const Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader);
+
+	void BindVertexShaderResource (const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView, unsigned int index);
+	void BindPixelShaderResource (const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView, unsigned int index);
+
+	void BindVertexShaderSampler (const Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler, unsigned int index);
+	void BindPixelShaderSampler (const Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler, unsigned int index);
 
 	bool CreateVertexBuffer (const void* buffer, unsigned int bufferByteSize, Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer);
 	bool CreateIndexBuffer (const void* buffer, unsigned int bufferByteSize, Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer);
 
 	void DrawIndexed (const Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffer, unsigned int vertexSize,
 					  const Microsoft::WRL::ComPtr<ID3D11Buffer>& indexBuffer, unsigned int indexCount);
+
+	bool CreateTexture2D (unsigned int width, unsigned int height, unsigned int mipmapCount, unsigned int arraySize,
+		DXGI_FORMAT format, void* data, unsigned int dataRowPitch, Microsoft::WRL::ComPtr<ID3D11Texture2D>& texture);
+	bool CreateShaderResourceView (const Microsoft::WRL::ComPtr<ID3D11Texture2D>& texture, DXGI_FORMAT format, unsigned int firstMipmapIndex, unsigned int mipMapCount,
+		unsigned int arraySize, unsigned int firstArrayIndex, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& textureResourceView);
+	bool CreateSampler (D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_FILTER filterMode, unsigned int anisotropicLevel, Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_device;

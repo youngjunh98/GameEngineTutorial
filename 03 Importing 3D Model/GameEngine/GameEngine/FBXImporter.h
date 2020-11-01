@@ -2,7 +2,7 @@
 
 #include <fbxsdk.h>
 
-class Mesh;
+#include"Mesh.h"
 
 class FBXImporter
 {

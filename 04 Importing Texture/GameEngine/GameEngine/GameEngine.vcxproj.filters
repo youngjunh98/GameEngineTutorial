@@ -39,6 +39,15 @@
     <ClCompile Include="FBXMemoryReadStream.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="STBImage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="StbImageImporter.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D11.h">
@@ -60,6 +69,15 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="FBXMemoryReadStream.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="STBImage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StbImageImporter.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -263,19 +263,6 @@ bool D3D11::CreateVertexShader (Microsoft::WRL::ComPtr<ID3D11VertexShader>& vert
 	return true;
 }
 
-void D3D11::SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader)
-{
-	// 지정한 Vertex Shader를 사용한다.
-	if (vertexShader)
-	{
-		m_immediateContext->VSSetShader (vertexShader.Get (), nullptr, 0);
-	}
-	else
-	{
-		m_immediateContext->VSSetShader (nullptr, nullptr, 0);
-	}
-}
-
 bool D3D11::CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader, const Microsoft::WRL::ComPtr<ID3DBlob>& compiledCode)
 {
 	if (!compiledCode)
@@ -295,6 +282,19 @@ bool D3D11::CreatePixelShader (Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelS
 	return true;
 }
 
+void D3D11::SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& vertexShader)
+{
+	// 지정한 Vertex Shader를 사용한다.
+	if (vertexShader)
+	{
+		m_immediateContext->VSSetShader (vertexShader.Get (), nullptr, 0);
+	}
+	else
+	{
+		m_immediateContext->VSSetShader (nullptr, nullptr, 0);
+	}
+}
+
 void D3D11::SetPixelShader (const Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader)
 {
 	// 지정한 Pixel Shader를 사용한다.
@@ -305,6 +305,62 @@ void D3D11::SetPixelShader (const Microsoft::WRL::ComPtr<ID3D11PixelShader>& pix
 	else
 	{
 		m_immediateContext->PSSetShader (nullptr, nullptr, 0);
+	}
+}
+
+void D3D11::BindVertexShaderResource (const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView, unsigned int index)
+{
+	// 지정한 Resource View를 사용하고, 없으면 Null view를 바인딩한다.
+	if (shaderResourceView == nullptr)
+	{
+		ID3D11ShaderResourceView* nullView[1] = { nullptr };
+		m_immediateContext->VSSetShaderResources (index, 1, nullView);
+	}
+	else
+	{
+		m_immediateContext->VSSetShaderResources (index, 1, shaderResourceView.GetAddressOf ());
+	}
+}
+
+void D3D11::BindPixelShaderResource (const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView, unsigned int index)
+{
+	// 지정한 Resource View를 사용하고, 없으면 Null view를 바인딩한다.
+	if (shaderResourceView == nullptr)
+	{
+		ID3D11ShaderResourceView* nullView[1] = { nullptr };
+		m_immediateContext->PSSetShaderResources (index, 1, nullView);
+	}
+	else
+	{
+		m_immediateContext->PSSetShaderResources (index, 1, shaderResourceView.GetAddressOf ());
+	}
+}
+
+void D3D11::BindVertexShaderSampler (const Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler, unsigned int index)
+{
+	// 지정한 Resource View를 사용하고, 없으면 Null sampler를 바인딩한다.
+	if (sampler == nullptr)
+	{
+		ID3D11SamplerState* nullSampler[1] = { nullptr };
+		m_immediateContext->VSSetSamplers (index, 1, nullSampler);
+	}
+	else
+	{
+		m_immediateContext->VSSetSamplers (index, 1, sampler.GetAddressOf ());
+	}
+}
+
+void D3D11::BindPixelShaderSampler (const Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler, unsigned int index)
+{
+	// 지정한 Resource View를 사용하고, 없으면 Null sampler를 바인딩한다.
+	if (sampler == nullptr)
+	{
+		ID3D11SamplerState* nullSampler[1] = { nullptr };
+		m_immediateContext->PSSetSamplers (index, 1, nullSampler);
+	}
+	else
+	{
+		m_immediateContext->PSSetSamplers (index, 1, sampler.GetAddressOf ());
 	}
 }
 
@@ -376,4 +432,86 @@ void D3D11::DrawIndexed (const Microsoft::WRL::ComPtr<ID3D11Buffer>& vertexBuffe
 
 	// Index를 사용해 그린다.
 	m_immediateContext->DrawIndexed (indexCount, 0, 0);
+}
+
+bool D3D11::CreateTexture2D (unsigned int width, unsigned int height, unsigned int mipmapCount, unsigned int arraySize,
+	DXGI_FORMAT format, void* data, unsigned int dataRowPitch, Microsoft::WRL::ComPtr<ID3D11Texture2D>& texture)
+{
+	// 텍스처를 초기화하는데 사용할 데이터를 설정한다.
+	D3D11_SUBRESOURCE_DATA resourceData;
+	resourceData.pSysMem = data;
+	resourceData.SysMemPitch = dataRowPitch;
+
+	// 2D 텍스처 설정
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = mipmapCount;
+	desc.ArraySize = arraySize;
+	desc.Format = format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = 0;
+	desc.MiscFlags = 0;
+
+	// 2D 텍스처를 생성한다.
+	if (FAILED (m_device->CreateTexture2D (&desc, &resourceData, texture.ReleaseAndGetAddressOf ())))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool D3D11::CreateShaderResourceView (const Microsoft::WRL::ComPtr<ID3D11Texture2D>& texture, DXGI_FORMAT format, unsigned int firstMipmapIndex, unsigned int mipMapCount,
+	unsigned int arraySize, unsigned int firstArrayIndex, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& textureResourceView)
+{
+	if (texture == nullptr)
+	{
+		return false;
+	}
+
+	// 2D 텍스처의 Shader resource view 설정
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = firstMipmapIndex;
+	srvDesc.Texture2D.MipLevels = mipMapCount - firstMipmapIndex;
+
+	// Shader resourve view를 생성한다.
+	if (FAILED (m_device->CreateShaderResourceView (texture.Get (), &srvDesc, textureResourceView.ReleaseAndGetAddressOf ())))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool D3D11::CreateSampler (D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_FILTER filterMode, unsigned int anisotropicLevel, Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler)
+{
+	// Sampler 설정
+	D3D11_SAMPLER_DESC samplerDesc = { };
+	samplerDesc.Filter = filterMode;
+	samplerDesc.AddressU = addressMode;
+	samplerDesc.AddressV = addressMode;
+	samplerDesc.AddressW = addressMode;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = anisotropicLevel;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0.0f;
+	samplerDesc.BorderColor[1] = 0.0f;
+	samplerDesc.BorderColor[2] = 0.0f;
+	samplerDesc.BorderColor[3] = 0.0f;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Sampler를 생성한다.
+	if (FAILED (m_device->CreateSamplerState (&samplerDesc, sampler.ReleaseAndGetAddressOf ())))
+	{
+		return false;
+	}
+
+	return true;
 }

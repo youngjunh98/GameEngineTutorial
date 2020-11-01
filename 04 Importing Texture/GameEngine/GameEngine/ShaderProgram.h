@@ -13,6 +13,10 @@ public:
 	bool Initialize (LPCTSTR sourcePath);
 	void Destroy ();
 
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> GetInputLayout () const;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader () const;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader () const;
+
 private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;

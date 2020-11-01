@@ -8,10 +8,13 @@
 #include "Mesh.h"
 #include "OBJImporter.h"
 #include "FBXImporter.h"
+#include "Texture.h"
+#include"StbImageImporter.h"
 
 D3D11 g_d3d11;
-ShaderProgram g_colorShader;
+ShaderProgram g_shader;
 Mesh g_mesh;
+Texture g_texture;
 
 Application::Application () : m_hInstance (nullptr), m_hWnd (nullptr)
 {
@@ -115,7 +118,7 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	}
 
 	// Shader를 초기화한다.
-	if (g_colorShader.Initialize (L"Shaders/LambertShader.hlsl") == false)
+	if (g_shader.Initialize (L"Shaders/LambertShader.hlsl") == false)
 	{
 		return false;
 	}
@@ -157,6 +160,36 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 
 	FBXImporter::Shutdown ();
 
+	// Texture를 초기화한다.
+	std::ifstream textureFile ("Assets/Container_Color.tga", std::ifstream::binary);
+
+	if (textureFile)
+	{
+		textureFile.seekg (0, std::ios::end);
+		fileSize = static_cast<size_t> (textureFile.tellg ());
+		textureFile.seekg (0, std::ios::beg);
+
+		buffer = std::make_unique<char[]> (fileSize);
+		textureFile.read (buffer.get (), fileSize);
+	}
+	else
+	{
+		return false;
+	}
+
+	StbImage image;
+	const unsigned char* imageData = reinterpret_cast<const unsigned char*> (buffer.get ());
+
+	if (StbImageImporter::Import (image, imageData, fileSize, true, false) == false)
+	{
+		return false;
+	}
+
+	if (g_texture.Initialize (image) == false)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -194,7 +227,20 @@ void Application::Update ()
 		// 게임 루프
 		g_d3d11.ClearRenderTarget (0.0f, 0.0f, 0.0f, 1.0f);
 		g_d3d11.ClearDpethStencil (1.0f, 0);
+
+		// 지정한 Shader와 InputLayout을 사용한다.
+		g_d3d11.SetInputLayout (g_shader.GetInputLayout ());
+		g_d3d11.SetVertexShader (g_shader.GetVertexShader ());
+		g_d3d11.SetPixelShader (g_shader.GetPixelShader ());
+
+		// 지정한 Shader Resource와 Sampler를 바인딩한다.
+		g_d3d11.BindPixelShaderResource (g_texture.GetResourceView (), 0);
+		g_d3d11.BindPixelShaderSampler (g_texture.GetSmapler (), 0);
+
+		// 지정한 Vertex 버퍼와 Index 버퍼를 그린다.
 		g_d3d11.DrawIndexed (g_mesh.GetVertexBuffer (), sizeof (Vertex), g_mesh.GetIndexBuffer (), g_mesh.GetIndexCount ());
+
+		// Swap chain의 후면 버퍼를 화면에 표시한다.
 		g_d3d11.PresentSwapChain (true);
 	}
 }

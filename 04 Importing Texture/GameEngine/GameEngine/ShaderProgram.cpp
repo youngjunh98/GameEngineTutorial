@@ -47,11 +47,6 @@ bool ShaderProgram::Initialize (LPCTSTR sourcePath)
 		return false;
 	}
 
-	// 생성한 Shader와 InputLayout을 사용한다.
-	g_d3d11.SetInputLayout (m_inputLayout);
-	g_d3d11.SetVertexShader (m_vertexShader);
-	g_d3d11.SetPixelShader (m_pixelShader);
-
 	return true;
 }
 
@@ -59,4 +54,19 @@ void ShaderProgram::Destroy ()
 {
 	m_vertexShader = nullptr;
 	m_pixelShader = nullptr;
+}
+
+Microsoft::WRL::ComPtr<ID3D11InputLayout> ShaderProgram::GetInputLayout () const
+{
+	return m_inputLayout;
+}
+
+Microsoft::WRL::ComPtr<ID3D11VertexShader> ShaderProgram::GetVertexShader () const
+{
+	return m_vertexShader;
+}
+
+Microsoft::WRL::ComPtr<ID3D11PixelShader> ShaderProgram::GetPixelShader () const
+{
+	return m_pixelShader;
 }

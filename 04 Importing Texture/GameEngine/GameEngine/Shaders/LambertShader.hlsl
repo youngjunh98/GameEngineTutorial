@@ -22,8 +22,12 @@ VertexOutput VertexMain(VertexInput input)
 	return output;
 }
 
+Texture2D BaseColorTexture;
+SamplerState BaseColorTextureSampler;
+
 float4 PixelMain(VertexOutput input) : SV_TARGET
 {
+	float3 color = BaseColorTexture.Sample (BaseColorTextureSampler, input.uv).rgb;
 	float NL = dot (input.normal, float3 (0.0, 0.0, -1.0));
-	return float4 (NL, NL, NL, 1.0);
+	return float4 (color * NL, 1.0);
 }
