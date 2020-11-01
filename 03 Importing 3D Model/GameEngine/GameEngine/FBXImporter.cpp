@@ -16,8 +16,19 @@ bool FBXImporter::Start ()
 	// FBX SDK 매니저를 생성한다.
 	g_fbxManager = FbxManager::Create ();
 
+	if (g_fbxManager == nullptr)
+	{
+		return false;
+	}
+
 	// 입출력 설정을 지정한다.
 	g_fbxIOSettings = FbxIOSettings::Create (g_fbxManager, IOSROOT);
+
+	if (g_fbxIOSettings == nullptr)
+	{
+		return false;
+	}
+
 	g_fbxManager->SetIOSettings (g_fbxIOSettings);
 
 	return true;
@@ -25,12 +36,18 @@ bool FBXImporter::Start ()
 void FBXImporter::Shutdown ()
 {
 	// 입출력 설정을 지운다.
-	g_fbxIOSettings->Destroy ();
-	g_fbxIOSettings = nullptr;
+	if (g_fbxIOSettings != nullptr)
+	{
+		g_fbxIOSettings->Destroy ();
+		g_fbxIOSettings = nullptr;
+	}
 
 	// FBX SDK 매니저를 지운다.
-	g_fbxManager->Destroy ();
-	g_fbxManager = nullptr;
+	if (g_fbxManager != nullptr)
+	{
+		g_fbxManager->Destroy ();
+		g_fbxManager = nullptr;
+	}
 }
 
 bool FBXImporter::Import (Mesh& mesh, char* data, const int dataSize)
@@ -137,7 +154,7 @@ void FBXImporter::TraverseNode (FbxNode* fbxNode, std::vector<Vertex>& vertices)
 
 				// Vertex 위치, 텍스처 좌표, Normal을 가져온다.
 				FbxVector4 controlPoint = fbxMesh->GetControlPointAt (controlPointIndex);
-				FbxVector4 uv = GetMeshUV (fbxMesh, controlPointIndex, fbxMesh->GetTextureUVIndex (polygonIndex, vertexIndex));
+				FbxVector2 uv = GetMeshUV (fbxMesh, controlPointIndex, fbxMesh->GetTextureUVIndex (polygonIndex, vertexIndex));
 				FbxVector4 normal = GetMeshNormal (fbxMesh, controlPointIndex, vertexId);
 				FbxVector4 tangent = GetMeshTangent (fbxMesh, controlPointIndex, vertexId);
 				float uvWinding = static_cast<float> (tangent.mData[3]);
@@ -172,28 +189,28 @@ void FBXImporter::TraverseNode (FbxNode* fbxNode, std::vector<Vertex>& vertices)
 	}
 }
 
-FbxVector4 FBXImporter::GetMeshUV (FbxMesh* fbxMesh, int controlPointIndex, int uvIndex)
+FbxVector2 FBXImporter::GetMeshUV (FbxMesh* fbxMesh, int controlPointIndex, int uvIndex)
 {
-	FbxVector4 uv;
+	FbxVector2 uv;
 
 	const FbxGeometryElementUV* fbxUV = fbxMesh->GetElementUV (0);
-	const FbxLayerElement::EMappingMode uvMapping = fbxUV->GetMappingMode ();
-	const FbxLayerElement::EReferenceMode uvReference = fbxUV->GetReferenceMode ();
+	const FbxLayerElement::EMappingMode mapping = fbxUV->GetMappingMode ();
+	const FbxLayerElement::EReferenceMode reference = fbxUV->GetReferenceMode ();
 
 	// Element의 매핑 모드와 레퍼런스 모드에 따라서 값을 가져온다.
-	if (uvMapping == FbxGeometryElement::eByControlPoint)
+	if (mapping == FbxGeometryElement::eByControlPoint)
 	{
-		if (uvReference == FbxGeometryElement::eDirect)
+		if (reference == FbxGeometryElement::eDirect)
 		{
 			uv = fbxUV->GetDirectArray ().GetAt (controlPointIndex);
 		}
-		else if (uvReference == FbxGeometryElement::eIndexToDirect)
+		else if (reference == FbxGeometryElement::eIndexToDirect)
 		{
 			int index = fbxUV->GetIndexArray ().GetAt (controlPointIndex);
 			uv = fbxUV->GetDirectArray ().GetAt (index);
 		}
 	}
-	else if (uvMapping == FbxGeometryElement::eByPolygonVertex)
+	else if (mapping == FbxGeometryElement::eByPolygonVertex)
 	{
 		uv = fbxUV->GetDirectArray ().GetAt (uvIndex);
 	}
@@ -206,29 +223,29 @@ FbxVector4 FBXImporter::GetMeshNormal (FbxMesh* fbxMesh, int controlPointIndex, 
 	FbxVector4 normal;
 
 	const FbxGeometryElementNormal* fbxNormal = fbxMesh->GetElementNormal (0);
-	const FbxLayerElement::EMappingMode normalMapping = fbxNormal->GetMappingMode ();
-	const FbxLayerElement::EReferenceMode normalReference = fbxNormal->GetReferenceMode ();
+	const FbxLayerElement::EMappingMode mapping = fbxNormal->GetMappingMode ();
+	const FbxLayerElement::EReferenceMode reference = fbxNormal->GetReferenceMode ();
 
 	// Element의 매핑 모드와 레퍼런스 모드에 따라서 값을 가져온다.
-	if (normalMapping == FbxGeometryElement::eByControlPoint)
+	if (mapping == FbxGeometryElement::eByControlPoint)
 	{
-		if (normalReference == FbxGeometryElement::eDirect)
+		if (reference == FbxGeometryElement::eDirect)
 		{
 			normal = fbxNormal->GetDirectArray ().GetAt (controlPointIndex);
 		}
-		else if (normalReference == FbxGeometryElement::eIndexToDirect)
+		else if (reference == FbxGeometryElement::eIndexToDirect)
 		{
 			int index = fbxNormal->GetIndexArray ().GetAt (controlPointIndex);
 			normal = fbxNormal->GetDirectArray ().GetAt (index);
 		}
 	}
-	else if (normalMapping == FbxGeometryElement::eByPolygonVertex)
+	else if (mapping == FbxGeometryElement::eByPolygonVertex)
 	{
-		if (normalReference == FbxGeometryElement::eDirect)
+		if (reference == FbxGeometryElement::eDirect)
 		{
 			normal = fbxNormal->GetDirectArray ().GetAt (vertexId);
 		}
-		else if (normalReference == FbxGeometryElement::eIndexToDirect)
+		else if (reference == FbxGeometryElement::eIndexToDirect)
 		{
 			int index = fbxNormal->GetIndexArray ().GetAt (vertexId);
 			normal = fbxNormal->GetDirectArray ().GetAt (index);
@@ -243,29 +260,29 @@ FbxVector4 FBXImporter::GetMeshTangent (FbxMesh* fbxMesh, int controlPointIndex,
 	FbxVector4 tangent;
 
 	const FbxGeometryElementTangent* fbxTangent = fbxMesh->GetElementTangent (0);
-	const FbxLayerElement::EMappingMode tangentMapping = fbxTangent->GetMappingMode ();
-	const FbxLayerElement::EReferenceMode tangentReference = fbxTangent->GetReferenceMode ();
+	const FbxLayerElement::EMappingMode mapping = fbxTangent->GetMappingMode ();
+	const FbxLayerElement::EReferenceMode reference = fbxTangent->GetReferenceMode ();
 
 	// Element의 매핑 모드와 레퍼런스 모드에 따라서 값을 가져온다.
-	if (tangentMapping == FbxGeometryElement::eByControlPoint)
+	if (mapping == FbxGeometryElement::eByControlPoint)
 	{
-		if (tangentReference == FbxGeometryElement::eDirect)
+		if (reference == FbxGeometryElement::eDirect)
 		{
 			tangent = fbxTangent->GetDirectArray ().GetAt (controlPointIndex);
 		}
-		else if (tangentReference == FbxGeometryElement::eIndexToDirect)
+		else if (reference == FbxGeometryElement::eIndexToDirect)
 		{
 			int index = fbxTangent->GetIndexArray ().GetAt (controlPointIndex);
 			tangent = fbxTangent->GetDirectArray ().GetAt (index);
 		}
 	}
-	else if (tangentMapping == FbxGeometryElement::eByPolygonVertex)
+	else if (mapping == FbxGeometryElement::eByPolygonVertex)
 	{
-		if (tangentReference == FbxGeometryElement::eDirect)
+		if (reference == FbxGeometryElement::eDirect)
 		{
 			tangent = fbxTangent->GetDirectArray ().GetAt (vertexId);
 		}
-		else if (tangentReference == FbxGeometryElement::eIndexToDirect)
+		else if (reference == FbxGeometryElement::eIndexToDirect)
 		{
 			int index = fbxTangent->GetIndexArray ().GetAt (vertexId);
 			tangent = fbxTangent->GetDirectArray ().GetAt (index);
