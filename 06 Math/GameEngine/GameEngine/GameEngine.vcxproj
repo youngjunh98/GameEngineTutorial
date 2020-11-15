@@ -153,14 +153,19 @@
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="FBXMemoryReadStream.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="Matrix4x4.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OBJImporter.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="StbImage.cpp" />
     <ClCompile Include="StbImageImporter.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Vector3.cpp" />
+    <ClCompile Include="Vector4.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -170,14 +175,19 @@
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="FBXMemoryReadStream.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Math.h" />
+    <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJImporter.h" />
+    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="StbImage.h" />
     <ClInclude Include="StbImageImporter.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Vector3.h" />
+    <ClInclude Include="Vector4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
