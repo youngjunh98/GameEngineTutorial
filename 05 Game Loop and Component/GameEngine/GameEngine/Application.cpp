@@ -123,15 +123,15 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	}
 
 	// Shader를 초기화한다.
-	if (g_shader.Initialize (L"Shaders/LambertShader.hlsl") == false)
+	if (g_shader.Initialize (L"../../../Shaders/LambertShader.hlsl") == false)
 	{
 		return false;
 	}
 
 	// Mesh를 초기화한다.
 	std::unique_ptr<char[]> buffer;
-	//std::ifstream file ("Assets/monkey.obj", std::ifstream::binary);
-	std::ifstream file ("Assets/Container40F.fbx", std::ifstream::binary);
+	//std::ifstream file ("../../../Assets/monkey.obj", std::ifstream::binary);
+	std::ifstream file ("../../../Assets/Container40F.fbx", std::ifstream::binary);
 	size_t fileSize;
 
 	if (file)
@@ -166,7 +166,7 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	FBXImporter::Shutdown ();
 
 	// Texture를 초기화한다.
-	std::ifstream textureFile ("Assets/Container_Color.tga", std::ifstream::binary);
+	std::ifstream textureFile ("../../../Assets/Container_Color.tga", std::ifstream::binary);
 
 	if (textureFile)
 	{

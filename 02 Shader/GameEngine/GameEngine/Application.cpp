@@ -111,7 +111,7 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	}
 
 	// Shader를 초기화한다.
-	if (g_colorShader.Initialize (L"ColorShader.hlsl") == false)
+	if (g_colorShader.Initialize (L"../../../Shaders/ColorShader.hlsl") == false)
 	{
 		return false;
 	}
