@@ -30,7 +30,7 @@ bool Texture::Initialize (const StbImage& image)
 
 	// 텍스처와 함께 사용할 Sampler를 생성한다.
 	// (Address Mode: Wrap, Filte Mode: Point)
-	if (g_d3d11.CreateSampler (D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_POINT, 1, m_sampler) == false)
+	if (g_d3d11.CreateSampler (D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FILTER_MIN_MAG_MIP_POINT, 1, m_sampler) == false)
 	{
 		return false;
 	}
