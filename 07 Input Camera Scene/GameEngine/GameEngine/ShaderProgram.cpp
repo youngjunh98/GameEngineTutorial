@@ -1,8 +1,6 @@
 #include "ShaderProgram.h"
 #include "D3D11.h"
 
-extern D3D11 g_d3d11;
-
 ShaderProgram::ShaderProgram ()
 {
 }

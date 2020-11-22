@@ -6,7 +6,10 @@
 #include "D3D11.h"
 #include "ShaderProgram.h"
 
-D3D11::D3D11 () : m_featureLevel()
+D3D11 g_d3d11;
+
+D3D11::D3D11 () : m_renderWidth (0.0f), m_renderHeight (0.0f),
+	m_featureLevel()
 {
 }
 
@@ -14,7 +17,7 @@ D3D11::~D3D11 ()
 {
 }
 
-bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen, bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount)
+bool D3D11::Initialize (HWND hWnd, unsigned int renderWidth, unsigned int renderHeight, bool isFullScreen, bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount)
 {
 	// 사용할 DirectX 11 버전
 	const D3D_FEATURE_LEVEL targetFeatureLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
@@ -52,8 +55,8 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 	// Swap chain 설정
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = { };
-	swapChainDesc.BufferDesc.Width = swapChainWidth;
-	swapChainDesc.BufferDesc.Height = swapChainHeight;
+	swapChainDesc.BufferDesc.Width = renderWidth;
+	swapChainDesc.BufferDesc.Height = renderHeight;
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = isVSync ? refreshRate : 0;
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -96,8 +99,8 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 	// Depth stencil buffer 설정
 	D3D11_TEXTURE2D_DESC depthStencilDescription = { };
-	depthStencilDescription.Width = swapChainWidth;
-	depthStencilDescription.Height = swapChainHeight;
+	depthStencilDescription.Width = renderWidth;
+	depthStencilDescription.Height = renderHeight;
 	depthStencilDescription.MipLevels = 1;
 	depthStencilDescription.ArraySize = 1;
 	depthStencilDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -132,8 +135,8 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 	// Viewport를 설정한다.
 	D3D11_VIEWPORT viewport;
-	viewport.Width = static_cast<FLOAT> (swapChainWidth);
-	viewport.Height = static_cast<FLOAT> (swapChainHeight);
+	viewport.Width = static_cast<FLOAT> (renderWidth);
+	viewport.Height = static_cast<FLOAT> (renderHeight);
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 	viewport.MinDepth = 0.0f;
@@ -141,11 +144,22 @@ bool D3D11::Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swa
 
 	m_immediateContext->RSSetViewports (1, &viewport);
 
+	m_renderWidth = static_cast<float> (renderWidth);
+	m_renderHeight = static_cast<float> (renderHeight);
+
+
+	if (CreateShaderConstantBuffer (sizeof (Matrix4x4), nullptr, m_matrixBuffer) == false)
+	{
+		return false;
+	}
+
 	return true;
 }
 
 void D3D11::Shutdown ()
 {
+	m_matrixBuffer = nullptr;
+
 	// 렌더 타겟 바인딩 해제한다.
 	ID3D11RenderTargetView* nullRenderTargetViews[] = { nullptr };
 	ID3D11DepthStencilView* nullDepthStencilView = nullptr;
@@ -288,6 +302,7 @@ void D3D11::SetVertexShader (const Microsoft::WRL::ComPtr<ID3D11VertexShader>& v
 	if (vertexShader)
 	{
 		m_immediateContext->VSSetShader (vertexShader.Get (), nullptr, 0);
+		m_immediateContext->VSSetConstantBuffers (0, 1, m_matrixBuffer.GetAddressOf ());
 	}
 	else
 	{
@@ -514,4 +529,64 @@ bool D3D11::CreateSampler (D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_FILTER 
 	}
 
 	return true;
+}
+
+bool D3D11::CreateShaderConstantBuffer (unsigned int size, const void* data, Microsoft::WRL::ComPtr<ID3D11Buffer>& shaderConstantBuffer)
+{
+	D3D11_BUFFER_DESC constantBufferDesc = { };
+	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	constantBufferDesc.ByteWidth = size;
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	constantBufferDesc.MiscFlags = 0;
+	constantBufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA constantBufferData = { };
+	constantBufferData.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA* cbDataPointer = (data == nullptr) ? nullptr : &constantBufferData;
+
+	return SUCCEEDED (m_device->CreateBuffer (&constantBufferDesc, cbDataPointer, shaderConstantBuffer.ReleaseAndGetAddressOf ()));
+}
+
+bool D3D11::UpdateShaderConstantBuffer (Microsoft::WRL::ComPtr<ID3D11Buffer>& shaderConstantBuffer, const void* data, unsigned int size)
+{
+	if (shaderConstantBuffer == nullptr)
+	{
+		return false;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE constantBufferData;
+
+	if (FAILED (m_immediateContext->Map (shaderConstantBuffer.Get (), 0, D3D11_MAP_WRITE_DISCARD, 0, &constantBufferData)))
+	{
+		return false;
+	}
+
+	auto* destination = static_cast<unsigned char*> (constantBufferData.pData);
+	auto* source = static_cast<const unsigned char*> (data);
+
+	for (unsigned int i = 0; i < size; i++)
+	{
+		destination[i] = source[i];
+	}
+
+	m_immediateContext->Unmap (shaderConstantBuffer.Get (), 0);
+
+	return true;
+}
+
+void D3D11::UpdateMatrixBuffer (MatrixBuffer matrixBuffer)
+{
+	UpdateShaderConstantBuffer (m_matrixBuffer, &matrixBuffer, sizeof (MatrixBuffer));
+}
+
+float D3D11::GetRenderWidth () const
+{
+	return m_renderWidth;
+}
+
+float D3D11::GetRenderHeight () const
+{
+	return m_renderHeight;
 }

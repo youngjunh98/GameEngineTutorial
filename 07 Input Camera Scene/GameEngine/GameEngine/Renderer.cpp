@@ -1,7 +1,8 @@
 ﻿#include "Renderer.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "Camera.h"
 #include "D3D11.h"
-
-extern D3D11 g_d3d11;
 
 Renderer::Renderer () :
 	m_shader (nullptr), m_mesh (nullptr), m_texture (nullptr)
@@ -21,6 +22,20 @@ void Renderer::OnUpdate (float deltaTime)
 
 void Renderer::OnRender ()
 {
+	Transform& transform = *GetGameObject ().GetComponent<Transform> ();
+	Vector3 position = transform.GetPosition ();
+	Quaternion rotation = transform.GetRotation ();
+	Vector3 scale = transform.GetScale ();
+
+	// Transpose of inverse of A is the inverse of transpose of A.
+	// (A-1)T = (AT)-1
+	MatrixBuffer matrixBuffer;
+	matrixBuffer.LocalToWorld = Matrix4x4::ScaleRotateTranslate (position, rotation, scale).Transposed ();
+	matrixBuffer.View = Camera::Main->GetViewMatrix ().Transposed ();
+	matrixBuffer.Projection = Camera::Main->GetProjectionMatrix ().Transposed ();
+
+	g_d3d11.UpdateMatrixBuffer (matrixBuffer);
+
 	if (m_shader != nullptr)
 	{
 		// 지정한 Shader와 InputLayout을 사용한다.

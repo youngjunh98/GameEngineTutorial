@@ -1,7 +1,5 @@
 #include "Texture.h"
 
-extern D3D11 g_d3d11;
-
 Texture::Texture () :
 	m_width (0), m_height (0), m_mipMapCount(1), m_format (DXGI_FORMAT_UNKNOWN)
 {

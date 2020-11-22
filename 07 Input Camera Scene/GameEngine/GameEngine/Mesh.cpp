@@ -1,8 +1,6 @@
 #include "Mesh.h"
 #include "D3D11.h"
 
-extern D3D11 g_d3d11;
-
 Mesh::Mesh () : m_vertexCount (0), m_indexCount (0)
 {
 }

@@ -5,13 +5,22 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include "Matrix4x4.h"
+
+struct MatrixBuffer
+{
+	Matrix4x4 LocalToWorld;
+	Matrix4x4 View;
+	Matrix4x4 Projection;
+};
+
 class D3D11
 {
 public:
 	D3D11 ();
 	virtual ~D3D11 ();
 
-	bool Initialize (HWND hWnd, unsigned int swapChainWidth, unsigned int swapChainHeight, bool isFullScreen,
+	bool Initialize (HWND hWnd, unsigned int renderWidth, unsigned int renderHeight, bool isFullScreen,
 					 bool isVSync, unsigned int refreshRate, bool isMsaa, unsigned int msaaSampleCount);
 	void Shutdown ();
 
@@ -48,11 +57,26 @@ public:
 		unsigned int arraySize, unsigned int firstArrayIndex, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& textureResourceView);
 	bool CreateSampler (D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_FILTER filterMode, unsigned int anisotropicLevel, Microsoft::WRL::ComPtr<ID3D11SamplerState>& sampler);
 
+	bool CreateShaderConstantBuffer (unsigned int size, const void* data, Microsoft::WRL::ComPtr<ID3D11Buffer>& shaderConstantBuffer);
+	bool UpdateShaderConstantBuffer (Microsoft::WRL::ComPtr<ID3D11Buffer>& shaderConstantBuffer, const void* data, unsigned int size);
+
+	void UpdateMatrixBuffer (MatrixBuffer matrixBuffer);
+
+	float GetRenderWidth () const;
+	float GetRenderHeight () const;
+
 private:
+	float m_renderWidth;
+	float m_renderHeight;
+
 	Microsoft::WRL::ComPtr<ID3D11Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_immediateContext;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 	D3D_FEATURE_LEVEL m_featureLevel;
+
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_matrixBuffer;
 };
+
+extern D3D11 g_d3d11;

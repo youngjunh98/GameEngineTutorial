@@ -13,13 +13,18 @@
 #include "Timer.h"
 #include "GameObject.h"
 #include "Renderer.h"
+#include "Input.h"
+#include "Camera.h"
+#include "Transform.h"
 
-D3D11 g_d3d11;
 ShaderProgram g_shader;
 Mesh g_mesh;
 Texture g_texture;
 Timer g_timer;
-GameObject g_gameObject;
+Input g_input;
+
+std::unique_ptr<GameObject> g_gameObject;
+std::unique_ptr<GameObject> g_camera;
 
 Application::Application () : m_hInstance (nullptr), m_hWnd (nullptr)
 {
@@ -116,6 +121,11 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 	// 윈도우를 표시한다.
 	ShowWindow (m_hWnd, SW_SHOW);
 
+	if (g_input.Initialize (m_hWnd) == false)
+	{
+		return false;
+	}
+
 	// D3D11을 초기화한다.
 	if (g_d3d11.Initialize (m_hWnd, width, height, false, true, 60, true, 4) == false)
 	{
@@ -195,10 +205,16 @@ bool Application::Initialize (LPCTSTR name, unsigned int width, unsigned int hei
 		return false;
 	}
 
-	g_gameObject.AddComponent<Renderer> ();
-	g_gameObject.GetComponent<Renderer> ()->SetShaderProgram (&g_shader);
-	g_gameObject.GetComponent<Renderer> ()->SetMesh (&g_mesh);
-	g_gameObject.GetComponent<Renderer> ()->SetTexture (&g_texture);
+	g_gameObject = std::make_unique<GameObject> ();
+	g_gameObject->GetComponent<Transform> ()->SetScale (Vector3 (0.01f, 0.01f, 0.01f));
+	g_gameObject->AddComponent<Renderer> ();
+	g_gameObject->GetComponent<Renderer> ()->SetShaderProgram (&g_shader);
+	g_gameObject->GetComponent<Renderer> ()->SetMesh (&g_mesh);
+	g_gameObject->GetComponent<Renderer> ()->SetTexture (&g_texture);
+
+	g_camera = std::make_unique<GameObject> ();
+	g_camera->GetComponent<Transform> ()->SetPosition (Vector3 (0.0f, 0.0f, -10.0f));
+	g_camera->AddComponent<Camera> ();
 
 	return true;
 }
@@ -225,6 +241,8 @@ void Application::Update ()
 
 	while (true)
 	{
+		g_input.Update ();
+
 		// 메시지가 있으면 처리한다.
 		while (PeekMessage (&message, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -236,12 +254,31 @@ void Application::Update ()
 			TranslateMessage (&message);
 			DispatchMessage (&message);
 		}
-
 		// 타이머를 업데이트 한다.
 		g_timer.Tick ();
 
 		// 게임 루프
-		for (auto* component : g_gameObject.GetComponents<Component> ())
+		if (g_input.GetKeyDown (KeyCode::Escape))
+		{
+			PostMessage (m_hWnd, WM_CLOSE, 0, 0);
+		}
+
+		Transform& camTransform = *g_camera->GetComponent<Transform> ();
+		Vector3 pos = camTransform.GetPosition ();
+
+		if (g_input.GetKey (KeyCode::A))
+		{
+			pos.m_x -= 10.0f * g_timer.GetDeltaTime ();
+		}
+
+		if (g_input.GetKey (KeyCode::D))
+		{
+			pos.m_x += 10.0f * g_timer.GetDeltaTime ();
+		}
+
+		camTransform.SetPosition (pos);
+
+		for (auto* component : g_gameObject->GetComponents<Component> ())
 		{
 			component->OnUpdate (g_timer.GetDeltaTime ());
 		}
@@ -251,7 +288,7 @@ void Application::Update ()
 		g_d3d11.ClearDpethStencil (1.0f, 0);
 
 		// 렌더러 컴포넌트를 사용해 렌더링한다.
-		for (auto* renderer : g_gameObject.GetComponents<Renderer> ())
+		for (auto* renderer : g_gameObject->GetComponents<Renderer> ())
 		{
 			renderer->OnRender ();
 		}
@@ -277,6 +314,32 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// 종료 메시지를 전달한다.
 			PostQuitMessage (0);
 			return 0;
+		}
+
+		case WM_INPUT:
+		case WM_MOUSEMOVE:
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+		case WM_MOUSEWHEEL:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONUP:
+		case WM_MOUSEHOVER:
+		{
+			g_input.ProcessMouseMessages (message, wParam, lParam);
+			break;
+		}
+
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		{
+			g_input.ProcessKeyboardMessages (message, wParam, lParam);
+			break;
 		}
 	}
 
