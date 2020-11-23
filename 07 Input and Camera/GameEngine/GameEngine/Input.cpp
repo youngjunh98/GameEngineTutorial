@@ -1,4 +1,5 @@
 #include <cstring>
+#include <hidusage.h>
 
 #include "Input.h"
 
@@ -17,8 +18,8 @@ Input::~Input ()
 bool Input::Initialize (HWND hWnd)
 {
 	RAWINPUTDEVICE rawInputDevice;
-	rawInputDevice.usUsagePage = 0x01;
-	rawInputDevice.usUsage = 0x02;
+	rawInputDevice.usUsagePage = HID_USAGE_PAGE_GENERIC;
+	rawInputDevice.usUsage = HID_USAGE_GENERIC_MOUSE;
 	rawInputDevice.dwFlags = 0;
 	rawInputDevice.hwndTarget = hWnd;
 
@@ -68,19 +69,20 @@ void Input::ProcessKeyboardMessages (UINT message, WPARAM wParam, LPARAM lParam)
 			// Do nothing
 			break;
 		}
-
-		default:
-			return;
 	}
 
 	WPARAM virtualKey = wParam;
 
 	if (virtualKey == VK_SHIFT)
 	{
+		// 16-23 bits (start from 0) are scan code.
+		// 0000 0000  1111 1111  0000 0000  0000 0000 (32 bits)
 		UINT scanCode = (static_cast<UINT> (lParam) & 0x00ff0000) >> 16;
 		virtualKey = MapVirtualKey (scanCode, MAPVK_VSC_TO_VK_EX);
 	}
 
+	// 24th bit (start from 0) indicates whether the key is an extended key.
+	// 0000 0001  0000 0000  0000 0000  0000 0000 (32 bits)
 	bool bExtendedKey = (static_cast<UINT> (lParam) & 0x01000000) != 0;
 	KeyCode keyCode = MapVirtualKeyToKeyCode (virtualKey, bExtendedKey);
 
@@ -118,18 +120,43 @@ void Input::ProcessMouseMessages (UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					MouseDelta (mouseDataX, mouseDataY);
 				}
-				else if (rawInput.data.mouse.usFlags == MOUSE_MOVE_ABSOLUTE)
+
+				/* Need more research
+				if ((rawInput.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) == MOUSE_MOVE_ABSOLUTE)
 				{
-					MousePosition (mouseDataX, mouseDataY);
+					bool isVirtualDesktop = (rawInput.data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP;
+					isVirtualDesktop = (rawInput.data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP;
+
+					int width = GetSystemMetrics (isVirtualDesktop ? SM_CXVIRTUALSCREEN : SM_CXSCREEN);
+					int height = GetSystemMetrics (isVirtualDesktop ? SM_CYVIRTUALSCREEN : SM_CYSCREEN);
+
+					POINT normalizedAbsoluteCoordinates;
+					normalizedAbsoluteCoordinates.x = (mouseDataX / 65535.0f) * width;
+					normalizedAbsoluteCoordinates.y = (mouseDataY / 65535.0f) * height;
+
+					if (ScreenToClient (m_hWnd, &normalizedAbsoluteCoordinates))
+					{
+						float absoluteX = static_cast<float> (normalizedAbsoluteCoordinates.x);
+						float absoluteY = static_cast<float> (normalizedAbsoluteCoordinates.y);
+
+						MousePosition (absoluteX, absoluteY);
+					}
 				}
+				else if ((rawInput.data.mouse.usFlags & MOUSE_MOVE_RELATIVE) == MOUSE_MOVE_RELATIVE)
+				{
+					MouseDelta (mouseDataX, mouseDataY);
+				}
+				*/
 			}
 
 			break;
 		}
 
 		case WM_MOUSEMOVE:
+		case WM_MOUSEHOVER:
 		{
-			// Do nothing
+			POINTS position = MAKEPOINTS (lParam);
+			MousePosition (static_cast<float> (position.x), static_cast<float> (position.y));
 			break;
 		}
 
@@ -172,36 +199,19 @@ void Input::ProcessMouseMessages (UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_MOUSEWHEEL:
 		{
 			float mouseScrollDelta = static_cast<float> (GET_WHEEL_DELTA_WPARAM (wParam));
+			MouseWheelScrollDelta (mouseScrollDelta);
+			break;
 		}
 
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP:
-		{
-			// Do nothing
 			break;
-		}
-
-		case WM_MOUSEHOVER:
-		{
-			// Do nothing
-			break;
-		}
-
-		default:
-			return;
 	}
 }
 
 bool Input::GetKey (KeyCode keyCode) const
 {
-	if (keyCode == KeyCode::None)
-	{
-		return false;
-	}
-
-	int index = static_cast<int> (keyCode);
-
-	return m_keyStates[index] == State::Down;
+	return keyCode == KeyCode::None ? false : m_keyStates[static_cast<int> (keyCode)] == State::Down;
 }
 
 bool Input::GetKeyUp (KeyCode keyCode) const
@@ -212,7 +222,6 @@ bool Input::GetKeyUp (KeyCode keyCode) const
 	}
 
 	int index = static_cast<int> (keyCode);
-
 	return m_prevKeyStates[index] == State::Down && m_keyStates[index] == State::Up;
 }
 
@@ -223,63 +232,76 @@ bool Input::GetKeyDown (KeyCode keyCode) const
 		return false;
 	}
 
-	unsigned int index = static_cast<unsigned int> (keyCode);
-
+	int index = static_cast<int> (keyCode);
 	return m_prevKeyStates[index] == State::Up && m_keyStates[index] == State::Down;
 }
 
 bool Input::GetMouseButton (MouseButton mouseButton) const
 {
+	State state = State::Up;
+
 	if (mouseButton == MouseButton::Left)
 	{
-		return m_mouseButtonStates[0] == State::Down;
+		state = m_mouseButtonStates[0];
 	}
 	else if (mouseButton == MouseButton::Middle)
 	{
-		return m_mouseButtonStates[1] == State::Down;
+		state = m_mouseButtonStates[1];
 	}
 	else if (mouseButton == MouseButton::Right)
 	{
-		return m_mouseButtonStates[2] == State::Down;
+		state = m_mouseButtonStates[2];
 	}
 
-	return false;
+	return state == State::Down;
 }
 
 bool Input::GetMouseButtonUp (MouseButton mouseButton) const
 {
+	State prevState = State::Up;
+	State state = State::Up;
+
 	if (mouseButton == MouseButton::Left)
 	{
-		return m_prevMouseButtonStates[0] == State::Down && m_mouseButtonStates[0] == State::Up;
+		prevState = m_prevMouseButtonStates[0];
+		state = m_mouseButtonStates[0];
 	}
 	else if (mouseButton == MouseButton::Middle)
 	{
-		return m_prevMouseButtonStates[1] == State::Down && m_mouseButtonStates[1] == State::Up;
+		prevState = m_prevMouseButtonStates[1];
+		state = m_mouseButtonStates[1];
 	}
 	else if (mouseButton == MouseButton::Right)
 	{
-		return m_prevMouseButtonStates[2] == State::Down && m_mouseButtonStates[2] == State::Up;
+		prevState = m_prevMouseButtonStates[2];
+		state = m_mouseButtonStates[2];
 	}
 
-	return false;
+	return prevState == State::Down && state == State::Up;
 }
 
 bool Input::GetMouseButtonDown (MouseButton mouseButton) const
 {
+	State prevState = State::Up;
+	State state = State::Up;
+
 	if (mouseButton == MouseButton::Left)
 	{
-		return m_prevMouseButtonStates[0] == State::Up && m_mouseButtonStates[0] == State::Down;
+		prevState = m_prevMouseButtonStates[0];
+		state = m_mouseButtonStates[0];
 	}
 	else if (mouseButton == MouseButton::Middle)
 	{
-		return m_prevMouseButtonStates[1] == State::Up && m_mouseButtonStates[1] == State::Down;
+		prevState = m_prevMouseButtonStates[1];
+		state = m_mouseButtonStates[1];
 	}
 	else if (mouseButton == MouseButton::Right)
 	{
-		return m_prevMouseButtonStates[2] == State::Up && m_mouseButtonStates[2] == State::Down;
+		prevState = m_prevMouseButtonStates[2];
+		state = m_mouseButtonStates[2];
 	}
 
-	return false;
+	return prevState == State::Up && state == State::Down;
 }
 
 float Input::GetMousePositionX () const

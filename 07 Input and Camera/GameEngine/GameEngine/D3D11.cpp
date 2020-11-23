@@ -148,7 +148,7 @@ bool D3D11::Initialize (HWND hWnd, unsigned int renderWidth, unsigned int render
 	m_renderHeight = static_cast<float> (renderHeight);
 
 
-	if (CreateShaderConstantBuffer (sizeof (Matrix4x4), nullptr, m_matrixBuffer) == false)
+	if (CreateShaderConstantBuffer (sizeof (MatrixBuffer), nullptr, m_matrixBuffer) == false)
 	{
 		return false;
 	}
