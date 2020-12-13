@@ -26,7 +26,7 @@ VertexOutput VertexMain(VertexInput input)
 	output.position = mul (output.position, g_View);
 	output.position = mul (output.position, g_Projection);
 	output.uv = input.uv;
-	output.normal = input.normal;
+	output.normal = normalize (mul (input.normal, (float3x3) g_LocalToWorld));
 	
 	return output;
 }

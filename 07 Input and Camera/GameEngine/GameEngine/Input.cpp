@@ -1,4 +1,5 @@
 #include <cstring>
+#include <Windows.h>
 #include <hidusage.h>
 
 #include "Input.h"

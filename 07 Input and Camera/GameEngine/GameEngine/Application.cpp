@@ -266,6 +266,17 @@ void Application::Update ()
 		Transform& camTransform = *g_camera->GetComponent<Transform> ();
 		Vector3 pos = camTransform.GetPosition ();
 
+
+		if (g_input.GetKey (KeyCode::W))
+		{
+			pos.m_z += 10.0f * g_timer.GetDeltaTime ();
+		}
+
+		if (g_input.GetKey (KeyCode::S))
+		{
+			pos.m_z -= 10.0f * g_timer.GetDeltaTime ();
+		}
+
 		if (g_input.GetKey (KeyCode::A))
 		{
 			pos.m_x -= 10.0f * g_timer.GetDeltaTime ();
@@ -277,6 +288,11 @@ void Application::Update ()
 		}
 
 		camTransform.SetPosition (pos);
+
+		Transform& transform = *g_gameObject->GetComponent<Transform> ();
+		Vector3 angles = transform.GetRotation ().Euler ();
+		angles.m_y += 60.0f * g_timer.GetDeltaTime ();
+		transform.SetRotation (Quaternion::FromEuler (angles));
 
 		for (auto* component : g_gameObject->GetComponents<Component> ())
 		{
